@@ -4,7 +4,7 @@
 This demo is based on spring boot(2.0.5.RELEASE) + spring batch + oracle(12c)
 
 # init
-####1. create a bussness table like person
+####1. create a bussness table like people
 ```
 CREATE TABLE PERSON(	
     "PEOPLE_ID" NUMBER NOT NULL ENABLE, 
@@ -25,4 +25,4 @@ You may need to set the isolation level of the oracle database when you see the 
 ##### exception:
 `PreparedStatementCallback; SQL [INSERT into BATCH_JOB_INSTANCE(JOB_INSTANCE_ID, JOB_NAME, JOB_KEY, VERSION) values (?, ?, ?, ?)]; ORA-08177: 无法连续访问此事务处理`
 ##### tips:
-`set global  TRANSACTION ISOLATION LEVEL  READ COMMITTED ;`
+`set global  TRANSACTION ISOLATION LEVEL  READ COMMITTED;`

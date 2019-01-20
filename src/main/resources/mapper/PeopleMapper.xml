@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.momo.batch.mapper.PeopleMapper">
+    <select id="queryAll" resultType="com.momo.batch.bean.People">
+        SELECT
+            first_name as firstName,
+            last_name as lastName
+        FROM people
+    </select>
+
+    <insert id="insert" parameterType="com.momo.batch.bean.People">
+        INSERT INTO people (people_id, first_name, last_name)
+        VALUES (people_seq.nextval,#{firstName}, #{lastName})
+    </insert>
+</mapper>

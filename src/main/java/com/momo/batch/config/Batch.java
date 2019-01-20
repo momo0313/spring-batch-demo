@@ -1,8 +1,9 @@
 package com.momo.batch.config;
 
-import com.momo.batch.bean.Person;
-import com.momo.batch.listener.JobCompletionNotificationListener;
-import com.momo.batch.processor.PersonProcessor;
+import com.momo.batch.bean.People;
+import com.momo.batch.listener.JobCompletionListener;
+import com.momo.batch.processor.PeopleProcessor;
+import com.momo.batch.writer.OracleWriter;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -10,18 +11,10 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-
-import javax.sql.DataSource;
 
 @Configuration
 @EnableBatchProcessing
@@ -32,50 +25,32 @@ public class Batch {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-    @Bean
-    public FlatFileItemReader<Person> reader() {
-        return new FlatFileItemReaderBuilder<Person>()
-                .name("personItemReader")
-                .resource(new ClassPathResource("people.csv"))
-                .delimited()
-                .names(new String[]{"firstName", "lastName"})
-                .fieldSetMapper(new BeanWrapperFieldSetMapper<Person>() {{
-                    setTargetType(Person.class);
-                }})
-                .build();
-    }
+    @Autowired
+    public OracleWriter oracleWriter;
+
+    @Autowired
+    public PeopleProcessor peopleProcessor;
+
+    @Autowired
+    private FlatFileItemReader csvFileReader;
 
     @Bean
-    public PersonProcessor processor() {
-        return new PersonProcessor();
-    }
-
-    @Bean
-    public JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
-        return new JdbcBatchItemWriterBuilder<Person>()
-                .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
-                .sql("INSERT INTO people (people_id, first_name, last_name) VALUES (people_seq.nextval,:firstName, :lastName)")
-                .dataSource(dataSource)
-                .build();
-    }
-
-    @Bean
-    public Job importUserJob(JobCompletionNotificationListener listener, Step step1) {
+    public Job importUserJob(JobCompletionListener listener, Step step) {
         return jobBuilderFactory.get("myjob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
-                .flow(step1)
+                .flow(step)
                 .end()
                 .build();
     }
 
     @Bean
-    public Step step1(JdbcBatchItemWriter<Person> writer) {
-        return stepBuilderFactory.get("step1")
-                .<Person, Person> chunk(10)
-                .reader(reader())
-                .processor(processor())
-                .writer(writer)
+    public Step step() {
+        return stepBuilderFactory.get("step")
+                .<People, People> chunk(10)
+                .reader(csvFileReader)
+                .processor(peopleProcessor)
+                .writer(oracleWriter)
                 .build();
     }
 }

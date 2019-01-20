@@ -1,11 +1,13 @@
 package com.momo.batch.bean;
 
-public class Person {
+public class People {
 
-    private String lastName;
     private String firstName;
+    private String lastName;
 
-    public Person(String firstName, String lastName) {
+    public People() {}
+
+    public People(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
     }
